@@ -77,21 +77,6 @@ Vincontrol gates itself behind **AKMS** — a public-key licensing system.
 - The panel **verifies the token offline** with the pinned public key on every request — so it works
   without internet during the offline-grace window, and **forged or edited tokens are rejected**.
 - A background **heartbeat** refreshes the token periodically to catch revocation / expiry.
-- The license is enforced **server-side** (in the Node panel), not in the browser, so the gate can't
-  be bypassed from the front-end.
-
-License management:
-
-```
-vincontrol license              # show status (scope, type, expiry, machine id)
-vincontrol activate <KEY>       # activate a license
-vincontrol deactivate           # release the slot on this machine (panel re-locks)
-```
-
-…or use **Settings → License** in the UI (status + deactivate). Bundled SDKs for licensing *other*
-apps live in `clients/` (`akms-client.js`, `akms-client.php`) with the full `AKMS-INTEGRATION.md`.
-
----
 
 ## CLI
 
