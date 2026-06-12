@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vincontrol — Setup</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .setup-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .setup-card{width:100%;max-width:460px;background:var(--panel);border:1px solid var(--border);
+      border-radius:16px;padding:30px 30px 26px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+    .setup-card .brand{font-size:26px;letter-spacing:1px;margin-bottom:4px}
+    .setup-sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+    .steps{display:flex;gap:8px;margin-bottom:22px}
+    .step-dot{flex:1;height:4px;border-radius:3px;background:#1b2530}
+    .step-dot.active{background:var(--accent)}
+    .step-dot.done{background:var(--ok)}
+    .step h3{margin:0 0 4px;font-size:16px;color:#e9f1f6}
+    .step p.note{color:var(--muted);font-size:12.5px;margin:0 0 16px;line-height:1.5}
+    .field{margin-bottom:14px}
+    .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    .field input{width:100%;padding:11px 12px;background:#0c1117;border:1px solid var(--border);
+      border-radius:9px;color:var(--text);font-size:14px;font-family:inherit}
+    .field input.mono{font-family:var(--mono);letter-spacing:1px}
+    .field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(52,211,192,.18)}
+    .setup-btn{width:100%;padding:13px;border:0;border-radius:10px;cursor:pointer;margin-top:4px;
+      font-weight:800;font-size:14px;letter-spacing:.3px;color:#042722;
+      background:linear-gradient(135deg,#43e6d2 0%,#22c1ad 55%,#1aa593 100%);
+      box-shadow:0 0 0 1px rgba(67,230,210,.45), 0 10px 26px rgba(52,211,192,.40), 0 0 22px rgba(52,211,192,.30);
+      transition:transform .12s ease, box-shadow .25s ease, filter .2s ease}
+    .setup-btn:hover{filter:brightness(1.08);transform:translateY(-1px);
+      box-shadow:0 0 0 1px rgba(67,230,210,.7), 0 14px 34px rgba(52,211,192,.55), 0 0 34px rgba(52,211,192,.5)}
+    .setup-btn:active{transform:translateY(0);filter:brightness(.98)}
+    .setup-btn:disabled{opacity:.6;cursor:default;box-shadow:none;filter:none;transform:none}
+    .msg{margin-top:14px;font-size:12.5px;min-height:18px}
+    .msg.bad{color:var(--danger)}
+    .msg.good{color:var(--ok)}
+    .meta{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);
+      font-size:11px;color:var(--muted);font-family:var(--mono);line-height:1.7;word-break:break-all}
+    .warn-box{background:rgba(255,93,108,.08);border:1px solid rgba(255,93,108,.3);border-radius:9px;
+      padding:10px 12px;font-size:12px;color:#ffb3bb;margin-bottom:16px;line-height:1.5}
+    .ok-icon{font-size:42px;text-align:center;color:var(--ok);margin:6px 0 10px}
+    .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);
+      border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+    @keyframes sp{to{transform:rotate(360deg)}}
+    code.k{color:var(--gold)}
+  </style>
+</head>
+<body>
+  <div class="setup-wrap">
+    <div class="setup-card">
+      <div class="brand"><b>VIN</b><span>CONTROL</span></div>
+      <div class="setup-sub">First-run setup — secure your panel &amp; activate your license</div>
+      <div class="steps">
+        <div class="step-dot" id="dot0"></div>
+        <div class="step-dot" id="dot1"></div>
+      </div>
+
+      <!-- STEP 1: password -->
+      <div class="step" id="step-pw" style="display:none">
+        <h3>1 · Admin password</h3>
+        <p class="note">Set the password you'll use to sign in to Vincontrol. Minimum 6 characters.</p>
+        <div class="field"><label>New password</label><input id="pw1" type="password" autocomplete="new-password" placeholder="••••••••"></div>
+        <div class="field"><label>Confirm password</label><input id="pw2" type="password" autocomplete="new-password" placeholder="••••••••"></div>
+        <button class="setup-btn" id="pwBtn">Set password &amp; continue</button>
+        <div class="msg" id="pwMsg"></div>
+      </div>
+
+      <!-- STEP 2: license -->
+      <div class="step" id="step-lic" style="display:none">
+        <h3>2 · Activate license</h3>
+        <p class="note">Enter your AKMS license key to activate this installation. The panel verifies it cryptographically and binds it to this machine.</p>
+        <div class="warn-box" id="cfgWarn" style="display:none">
+          ⚠ The AKMS public key isn't configured on this server yet. The admin must paste it into
+          <code class="k">lib/akms.config.js</code> (or set <code class="k">AKMS_PUBLIC_KEY</code>) before activation can succeed.
+        </div>
+        <div class="field"><label>License key</label><input id="lic" class="mono" placeholder="VINZ-XXXX-XXXX-XXXX-XXXX" spellcheck="false"></div>
+        <button class="setup-btn" id="licBtn">Activate</button>
+        <div class="msg" id="licMsg"></div>
+        <div class="meta" id="meta"></div>
+      </div>
+
+      <!-- DONE -->
+      <div class="step" id="step-done" style="display:none">
+        <div class="ok-icon">✓</div>
+        <h3 style="text-align:center">All set</h3>
+        <p class="note" style="text-align:center">Your panel is secured and licensed. You can sign in now.</p>
+        <button class="setup-btn" id="goBtn">Go to sign in →</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (s) => document.querySelector(s);
+    async function jpost(url, body){
+      const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body||{})});
+      let d={}; try{ d = await r.json(); }catch(e){}
+      return { ok:r.ok, status:r.status, data:d };
+    }
+    async function jget(url){ const r = await fetch(url); try{ return await r.json(); }catch(e){ return {}; } }
+
+    const ERRMAP = {
+      invalid_license:'Serial tidak ditemukan. Periksa kembali.',
+      revoked:'Lisensi ini telah dinonaktifkan.',
+      expired:'Langganan sudah berakhir. Perpanjang untuk lanjut.',
+      app_mismatch:'Serial ini bukan untuk aplikasi ini (Vincontrol).',
+      app_unavailable:'Lisensi tidak berlaku lagi. Hubungi penjual.',
+      activation_limit:'Batas perangkat tercapai. Lepas perangkat lama dulu.',
+      not_activated:'Belum diaktivasi di perangkat ini.',
+      bad_request:'Parameter kurang — periksa license key.',
+      network:'Tidak bisa menghubungi server lisensi. Cek koneksi internet server.',
+      not_configured:'Public key AKMS belum dipasang oleh admin.'
+    };
+
+    let st = { needsPassword:true, needsLicense:true };
+
+    function show(which){
+      ['step-pw','step-lic','step-done'].forEach(id => $('#'+id).style.display='none');
+      $('#'+which).style.display='block';
+    }
+
+    async function refresh(){
+      st = await jget('/api/setup/status');
+      $('#dot0').className = 'step-dot ' + (st.needsPassword ? 'active' : 'done');
+      $('#dot1').className = 'step-dot ' + (!st.needsPassword && st.needsLicense ? 'active' : (st.needsLicense ? '' : 'done'));
+      $('#cfgWarn').style.display = st.pubkeyConfigured ? 'none' : 'block';
+      $('#meta').innerHTML = 'Machine ID : ' + (st.machineId||'-');
+      if (st.needsPassword) { show('step-pw'); $('#pw1').focus(); }
+      else if (st.needsLicense) { show('step-lic'); $('#lic').focus(); }
+      else { show('step-done'); }
+    }
+
+    $('#pwBtn').onclick = async () => {
+      const a = $('#pw1').value, b = $('#pw2').value;
+      const m = $('#pwMsg'); m.className='msg';
+      if (a.length < 6) { m.className='msg bad'; m.textContent='Password minimal 6 karakter.'; return; }
+      if (a !== b) { m.className='msg bad'; m.textContent='Konfirmasi password tidak cocok.'; return; }
+      const btn=$('#pwBtn'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>Menyimpan…';
+      const r = await jpost('/api/setup/password', { password:a });
+      btn.disabled=false; btn.textContent='Set password & continue';
+      if (!r.ok) { m.className='msg bad'; m.textContent=(r.data && r.data.error) || 'Gagal menyimpan password.'; return; }
+      await refresh();
+    };
+
+    $('#licBtn').onclick = async () => {
+      const key = $('#lic').value.trim();
+      const m = $('#licMsg'); m.className='msg';
+      if (!key) { m.className='msg bad'; m.textContent='Masukkan license key.'; return; }
+      const btn=$('#licBtn'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>Mengaktivasi…';
+      const r = await jpost('/api/setup/activate', { licenseKey:key });
+      btn.disabled=false; btn.textContent='Activate';
+      const d = r.data || {};
+      if (d.valid) { m.className='msg good'; m.textContent='Lisensi aktif ✓'; setTimeout(refresh, 600); return; }
+      const code = d.error || 'network';
+      m.className='msg bad'; m.textContent = (ERRMAP[code] || d.message || 'Aktivasi gagal.') + ' (' + code + ')';
+    };
+    $('#lic').addEventListener('keydown', e => { if (e.key==='Enter') $('#licBtn').click(); });
+    $('#pw2').addEventListener('keydown', e => { if (e.key==='Enter') $('#pwBtn').click(); });
+
+    $('#goBtn').onclick = () => { window.location.href = '/login'; };
+
+    refresh();
+  </script>
+</body>
+</html>

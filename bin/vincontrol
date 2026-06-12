@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# Vincontrol CLI
+set -euo pipefail
+APP_DIR="/opt/vincontrol"
+CONF="$APP_DIR/config/config.json"
+SVC="vincontrol"
+
+c_teal='\033[38;5;43m'; c_gold='\033[38;5;179m'; c_dim='\033[2m'; c_red='\033[31m'; c_off='\033[0m'
+need_root(){ [ "$(id -u)" -eq 0 ] || { echo -e "${c_red}Run with sudo.${c_off}"; exit 1; }; }
+node_edit(){ node -e "const fs=require('fs');const p='$CONF';const cfg=JSON.parse(fs.readFileSync(p,'utf8'));$1;fs.writeFileSync(p,JSON.stringify(cfg,null,2));"; }
+
+case "${1:-}" in
+  start)    need_root; systemctl start  "$SVC"; echo -e "${c_teal}started${c_off}";;
+  stop)     need_root; systemctl stop   "$SVC"; echo -e "${c_teal}stopped${c_off}";;
+  restart)  need_root; systemctl restart "$SVC"; echo -e "${c_teal}restarted${c_off}";;
+  status)   systemctl status "$SVC" --no-pager || true;;
+  logs)     journalctl -u "$SVC" -f --no-pager;;
+  enable)   need_root; systemctl enable "$SVC"; echo "enabled at boot";;
+  disable)  need_root; systemctl disable "$SVC"; echo "disabled at boot";;
+  port)
+    need_root
+    [ -n "${2:-}" ] || { echo "usage: vincontrol port <number>"; exit 1; }
+    node_edit "cfg.port=parseInt('$2',10)"
+    systemctl restart "$SVC"
+    echo -e "${c_teal}port set to $2 and panel restarted${c_off}"
+    echo -e "${c_dim}remember to update your firewall (e.g. ufw allow $2/tcp)${c_off}";;
+  passwd)
+    need_root
+    read -rsp "New panel password: " P; echo
+    [ -n "$P" ] || { echo "empty password"; exit 1; }
+    H=$(cd "$APP_DIR" && node -e "console.log(require('bcryptjs').hashSync(process.argv[1],10))" "$P")
+    H="$H" node_edit "cfg.password_hash=process.env.H"
+    echo -e "${c_teal}password updated${c_off}";;
+  domain)
+    [ -n "${2:-}" ] || { echo "usage: vincontrol domain <yourdomain.com> [email]"; exit 1; }
+    cd "$APP_DIR" && node -e '
+      const pd=require("./lib/paneldomain");const cfg=require("./config/config.json");
+      pd.apply(process.argv[1],cfg.port,process.argv[2]||cfg.ssl_email||"").then(r=>{
+        const fs=require("fs");cfg.domain=process.argv[1];if(process.argv[2])cfg.ssl_email=process.argv[2];
+        fs.writeFileSync("./config/config.json",JSON.stringify(cfg,null,2));
+        console.log(r.ssl?("secured: https://"+r.host):("set (http only): http://"+r.host+(r.sslError?"  -- "+r.sslError:"")));
+      }).catch(e=>{console.error(e.message);process.exit(1);});
+    ' "$2" "${3:-}";;
+  license)
+    cd "$APP_DIR" && node -e '
+      const a=require("./lib/akms");const s=a.status();
+      const d=u=>u?new Date(u*1000).toISOString().slice(0,10):"-";
+      console.log("  status   "+(s.licensed?"active":"INACTIVE"));
+      console.log("  key      "+(s.keyMasked||"-"));
+      console.log("  scope    "+(s.scope||(s.app?"app":"universal"))+(s.app?" ("+s.app+")":""));
+      console.log("  type     "+(s.type||"-"));
+      console.log("  lic exp  "+d(s.licExp));
+      console.log("  machine  "+s.machineId);
+      if(!s.configured) console.log("  WARNING  AKMS public key not set in lib/akms.config.js");
+    ';;
+  activate)
+    [ -n "${2:-}" ] || { echo "usage: vincontrol activate <LICENSE-KEY>"; exit 1; }
+    need_root
+    cd "$APP_DIR" && node -e '
+      require("./lib/akms").activate(process.argv[1]).then(r=>{
+        if(r&&r.valid){console.log("license active");process.exit(0);}
+        console.error("activation failed: "+((r&&(r.error||r.message))||"unknown"));process.exit(1);
+      }).catch(e=>{console.error(e.message);process.exit(1);});
+    ' "$2" && systemctl restart "$SVC";;
+  deactivate)
+    need_root
+    cd "$APP_DIR" && node -e 'require("./lib/akms").deactivate().then(()=>console.log("deactivated; panel will require activation")).catch(e=>{console.error(e.message);process.exit(1);});' \
+      && systemctl restart "$SVC";;
+  info)
+    PORT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$CONF','utf8')).port)")
+    DOMAIN=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$CONF','utf8')).domain||'')")
+    IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+    LIC=$(cd "$APP_DIR" && node -e "console.log(require('./lib/akms').licensedNow()?'active':'INACTIVE')" 2>/dev/null || echo '?')
+    echo -e "${c_gold}Vincontrol${c_off}"
+    if [ -n "$DOMAIN" ]; then echo -e "  url      ${c_teal}https://vpanel.${DOMAIN}${c_off}  ${c_dim}(or http://${IP:-ip}:${PORT})${c_off}";
+    else echo -e "  url      ${c_teal}http://${IP:-<server-ip>}:${PORT}${c_off}"; fi
+    echo -e "  license  $LIC  ${c_dim}(vincontrol license)${c_off}"
+    echo -e "  dir      $APP_DIR"
+    echo -e "  service  $SVC  ($(systemctl is-active $SVC 2>/dev/null || echo unknown))"
+    echo -e "  webroot  $(node -e "console.log(JSON.parse(require('fs').readFileSync('$CONF','utf8')).www_root)")";;
+  *)
+    cat <<USAGE
+Vincontrol CLI
+
+  vincontrol start|stop|restart|status|logs
+  vincontrol enable|disable             boot autostart
+  vincontrol port <number>              change panel port (auto restarts)
+  vincontrol domain <domain> [email]    set panel domain + issue SSL
+  vincontrol license                    show license status
+  vincontrol activate <KEY>             activate an AKMS license
+  vincontrol deactivate                 release the license on this machine
+  vincontrol passwd                     reset panel password
+  vincontrol info                       show url + paths
+USAGE
+    ;;
+esac

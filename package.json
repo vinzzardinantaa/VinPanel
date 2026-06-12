@@ -1,0 +1,21 @@
+{
+  "name": "vincontrol",
+  "version": "1.0.0",
+  "description": "Vincontrol - lightweight self-hosted server control panel by VinzzApps",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "SUM / VinzzApps",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.7.5"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "port": 7800,
+  "host": "0.0.0.0",
+  "session_secret": "GENERATED_AT_INSTALL",
+  "password_hash": "",
+  "domain": "",
+  "www_root": "/www/wwwroot",
+  "nginx_conf_dir": "/etc/nginx/conf.d",
+  "ssl_email": "",
+  "mysql": {
+    "host": "localhost",
+    "user": "",
+    "password": "",
+    "socket": ""
+  }
+}

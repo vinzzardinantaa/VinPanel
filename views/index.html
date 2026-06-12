@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vincontrol</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand"><b>VIN</b><span>CONTROL</span></div>
+    <div class="host" id="host">&hellip;</div>
+    <div class="spacer"></div>
+    <div class="pill" id="osPill">&mdash;</div>
+    <button class="logout" id="logout">Sign out</button>
+  </div>
+
+  <aside class="side">
+    <nav class="nav" id="nav">
+      <div class="grp">Overview</div>
+      <button data-view="dash" class="active"><span class="ic">&#9632;</span> Dashboard</button>
+      <div class="grp">Server</div>
+      <button data-view="sites"><span class="ic">&#9783;</span> Websites</button>
+      <button data-view="db"><span class="ic">&#9707;</span> Databases</button>
+      <button data-view="php"><span class="ic">&#955;</span> PHP</button>
+      <button data-view="ssl"><span class="ic">&#9919;</span> SSL</button>
+      <button data-view="services"><span class="ic">&#10227;</span> Services</button>
+      <div class="grp">Tools</div>
+      <button data-view="files"><span class="ic">&#9707;</span> Files</button>
+      <button data-view="term"><span class="ic">&#62;_</span> Terminal</button>
+      <button data-view="license"><span class="ic">&#9919;</span> License</button>
+      <button data-view="settings"><span class="ic">&#9881;</span> Settings</button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dash">
+      <h2>Dashboard</h2>
+      <p class="lead" id="dashLead">Live server vitals</p>
+      <div class="grid g3" style="margin-bottom:16px">
+        <div class="card"><h3>CPU</h3><div class="gauge">
+          <div class="ring" id="ringCpu" style="--c:var(--teal)"><span class="val" id="cpuVal">0%</span></div>
+          <div class="meta" id="cpuMeta"></div></div></div>
+        <div class="card"><h3>Memory</h3><div class="gauge">
+          <div class="ring" id="ringMem" style="--c:var(--gold)"><span class="val" id="memVal">0%</span></div>
+          <div class="meta" id="memMeta"></div></div></div>
+        <div class="card"><h3>Disk /</h3><div class="gauge">
+          <div class="ring" id="ringDisk" style="--c:#7c8cff"><span class="val" id="diskVal">0%</span></div>
+          <div class="meta" id="diskMeta"></div></div></div>
+      </div>
+      <div class="grid g2">
+        <div class="card"><h3>System</h3><div id="sysInfo"></div></div>
+        <div class="card"><h3>Live</h3><div id="liveInfo"></div></div>
+      </div>
+    </section>
+
+    <!-- SITES -->
+    <section class="view" id="view-sites">
+      <h2>Websites</h2>
+      <p class="lead">Nginx virtual hosts managed by the panel</p>
+      <div class="toolbar">
+        <button class="btn pri" id="addSite">+ New site</button>
+        <button class="btn sm" data-reload="sites">Refresh</button>
+      </div>
+      <div class="card" style="padding:0"><table id="sitesTbl"><thead><tr>
+        <th>Domain</th><th>Root</th><th>PHP</th><th>SSL</th><th>Status</th><th></th>
+      </tr></thead><tbody></tbody></table></div>
+    </section>
+
+    <!-- DATABASES -->
+    <section class="view" id="view-db">
+      <h2>Databases</h2>
+      <p class="lead">MySQL / MariaDB databases and users</p>
+      <div class="toolbar">
+        <button class="btn pri" id="addDb">+ New database</button>
+        <button class="btn sm" data-reload="db">Refresh</button>
+        <button class="btn sm gold" id="pmaBtn">phpMyAdmin &#8599;</button>
+      </div>
+      <div class="card" style="padding:0"><table id="dbTbl"><thead><tr>
+        <th>Database</th><th>Size</th><th></th>
+      </tr></thead><tbody></tbody></table></div>
+    </section>
+
+    <!-- PHP -->
+    <section class="view" id="view-php">
+      <h2>PHP</h2>
+      <p class="lead">Installed PHP-FPM versions detected on this server</p>
+      <div class="card" id="phpCard"></div>
+    </section>
+
+    <!-- SSL -->
+    <section class="view" id="view-ssl">
+      <h2>SSL Certificates</h2>
+      <p class="lead">Issue free Let's Encrypt certificates via certbot</p>
+      <div class="card" style="max-width:520px">
+        <div class="field"><label>Domain</label><input id="sslDomain" placeholder="app.example.com"></div>
+        <div class="field"><label>Email (for renewal notices)</label><input id="sslEmail" placeholder="you@example.com"></div>
+        <button class="btn pri" id="sslIssue">Issue certificate</button>
+        <div class="hint">The domain must already point to this server (A record) and exist as a site.</div>
+        <pre id="sslOut" class="mono" style="margin-top:14px;white-space:pre-wrap;color:var(--muted);font-size:12px"></pre>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="view" id="view-services">
+      <h2>Services</h2>
+      <p class="lead">Control core stack services via systemd</p>
+      <div class="toolbar"><button class="btn sm" data-reload="services">Refresh</button></div>
+      <div class="card" style="padding:0"><table id="svcTbl"><thead><tr>
+        <th>Service</th><th>Status</th><th>Actions</th>
+      </tr></thead><tbody></tbody></table></div>
+    </section>
+
+    <!-- FILES -->
+    <section class="view" id="view-files">
+      <h2>File Manager</h2>
+      <p class="lead">Browse and edit files on the server</p>
+      <div class="toolbar">
+        <button class="btn sm" id="fUp">&#8593; Up</button>
+        <button class="btn sm" id="fHome">Home</button>
+        <button class="btn sm" id="fMkdir">+ Folder</button>
+        <button class="btn sm" id="fNewFile">+ File</button>
+        <label class="btn sm" style="cursor:pointer">Upload<input type="file" id="fUpload" hidden></label>
+        <button class="btn sm" data-reload="files">Refresh</button>
+      </div>
+      <div class="crumbs" id="crumbs"></div>
+      <div class="card" style="padding:0"><table id="filesTbl"><thead><tr>
+        <th>Name</th><th>Size</th><th>Perm</th><th>Modified</th><th></th>
+      </tr></thead><tbody></tbody></table></div>
+    </section>
+
+    <!-- TERMINAL -->
+    <section class="view" id="view-term">
+      <h2>Command Runner</h2>
+      <p class="lead">Run one-shot shell commands as the panel user (root). No interactive TTY.</p>
+      <div class="term">
+        <div class="out" id="termOut"><span class="muted">Ready. Type a command below and press Enter.</span></div>
+        <div class="in"><span>$</span><input id="termIn" placeholder="e.g. systemctl status nginx" autocomplete="off"></div>
+      </div>
+      <div class="hint" style="margin-top:8px">Working dir defaults to the web root. Use full paths. 60s timeout per command.</div>
+    </section>
+
+    <!-- LICENSE -->
+    <section class="view" id="view-license">
+      <h2>License</h2>
+      <p class="lead">AKMS KeyManagement &mdash; activation, validity &amp; details</p>
+      <div class="grid g2" style="margin-bottom:16px">
+        <div class="card" style="grid-column:1/3;text-align:center;padding:26px">
+          <div id="licBadge" style="font-size:13px;margin-bottom:8px"></div>
+          <div id="licCountdown" style="font-size:40px;font-weight:800;letter-spacing:.5px;line-height:1.1">&mdash;</div>
+          <div id="licCountLabel" class="muted" style="font-size:12px;margin-top:4px">remaining</div>
+          <div id="licBar" style="height:6px;border-radius:4px;background:#1b2530;margin:16px auto 0;max-width:520px;overflow:hidden">
+            <div id="licBarFill" style="height:100%;width:0;background:var(--accent);transition:width .4s"></div>
+          </div>
+        </div>
+        <div class="card" style="grid-column:1/3">
+          <h3>Details</h3>
+          <div id="licDetails" class="stat-grid">Loading&hellip;</div>
+          <div class="row" style="margin-top:14px">
+            <button class="btn sm" id="licRefresh">Re-check now</button>
+            <button class="btn sm danger" id="licOff">Deactivate this machine</button>
+          </div>
+        </div>
+        <div class="card" style="grid-column:1/3">
+          <h3>Change license</h3>
+          <p class="muted" style="margin:0 0 12px;font-size:13px">Activate a different AKMS key on this machine. The current activation is replaced.</p>
+          <div class="field"><label>New license key</label>
+            <input id="licNewKey" class="mono" placeholder="VINZ-XXXX-XXXX-XXXX-XXXX" spellcheck="false"
+              style="font-family:var(--mono);letter-spacing:1px">
+          </div>
+          <button class="btn pri" id="licReplace">Activate new key</button>
+          <div id="licReplaceMsg" class="hint" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view" id="view-settings">
+      <h2>Settings</h2>
+      <p class="lead">Panel configuration</p>
+      <div class="grid g2" style="margin-bottom:16px">
+        <div class="card" style="grid-column:1/3">
+          <h3>Panel domain &amp; HTTPS</h3>
+          <p class="muted" style="margin:0 0 14px;font-size:13px">Access the panel over your own domain with SSL. The
+            <code>vpanel.</code> prefix is fixed &mdash; only the domain is yours to set.</p>
+          <div class="field"><label>Panel address</label>
+            <div class="row" style="gap:0;align-items:stretch">
+              <span class="pfx">vpanel.</span>
+              <input id="domVal" placeholder="example.com" style="flex:1;border-top-left-radius:0;border-bottom-left-radius:0">
+            </div>
+          </div>
+          <div class="field"><label>Email (for Let's Encrypt renewals)</label><input id="domEmail" placeholder="you@example.com"></div>
+          <div class="row">
+            <button class="btn pri" id="domSave">Save &amp; secure</button>
+            <button class="btn sm" id="domCheck">Check DNS</button>
+          </div>
+          <div id="domStatus" class="hint" style="margin-top:12px"></div>
+        </div>
+        <div class="card">
+          <h3>Change password</h3>
+          <div class="field"><label>Current password</label><input id="pwCur" type="password"></div>
+          <div class="field"><label>New password</label><input id="pwNew" type="password"></div>
+          <button class="btn pri" id="pwSave">Update password</button>
+        </div>
+        <div class="card">
+          <h3>Panel port</h3>
+          <div class="field"><label>Port</label><input id="portVal" type="number" min="1" max="65535"></div>
+          <button class="btn" id="portSave">Save port</button>
+          <div class="hint">Requires <code>vincontrol restart</code> to take effect. Update your firewall too.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- generic modal -->
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

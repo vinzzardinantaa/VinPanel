@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vincontrol &mdash; Sign in</title>
+<style>
+  :root{
+    --bg:#0a0e13; --panel:#11161d; --border:#1d2530; --text:#e6edf3;
+    --muted:#8b97a5; --teal:#34d3c0; --gold:#c8a24b; --danger:#ff5d6c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;height:100vh;display:grid;place-items:center;background:
+    radial-gradient(900px 500px at 70% -10%, rgba(52,211,192,.08), transparent 60%),
+    radial-gradient(700px 400px at 10% 110%, rgba(200,162,75,.07), transparent 60%), var(--bg);
+    color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .card{width:360px;max-width:92vw;background:var(--panel);border:1px solid var(--border);
+    border-radius:14px;padding:32px 28px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+  .brand{font-weight:800;font-size:22px;letter-spacing:.18em;text-align:center;margin-bottom:4px}
+  .brand b{color:var(--gold)} .brand span{color:var(--teal)}
+  .sub{text-align:center;color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:26px}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:8px;letter-spacing:.04em}
+  input{width:100%;padding:13px 14px;background:#0c1117;border:1px solid var(--border);border-radius:9px;
+    color:var(--text);font-size:15px;outline:none;transition:border-color .15s,box-shadow .15s}
+  input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(52,211,192,.15)}
+  button{width:100%;margin-top:20px;padding:13px;border:0;border-radius:9px;cursor:pointer;
+    font-weight:700;font-size:15px;letter-spacing:.03em;color:#06231f;
+    background:linear-gradient(180deg,#3fe6d1,#2bb6a6)}
+  button:active{transform:translateY(1px)}
+  .err{margin-top:16px;color:var(--danger);font-size:13px;min-height:18px;text-align:center}
+  .foot{margin-top:22px;text-align:center;color:var(--muted);font-size:11px}
+</style>
+</head>
+<body>
+  <form class="card" id="f" autocomplete="off">
+    <div class="brand"><b>VIN</b><span>CONTROL</span></div>
+    <div class="sub">VinzzApps Server Control</div>
+    <label for="p">Password</label>
+    <input id="p" type="password" placeholder="Enter panel password" autofocus>
+    <button type="submit">Sign in</button>
+    <div class="err" id="e"></div>
+    <div class="foot">Vincontrol v1.0 &middot; secure your access behind a firewall</div>
+  </form>
+<script>
+  const f=document.getElementById('f'),p=document.getElementById('p'),e=document.getElementById('e');
+  f.addEventListener('submit',async(ev)=>{
+    ev.preventDefault(); e.textContent='';
+    try{
+      const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({password:p.value})});
+      if(r.ok){location.href='/';}
+      else{const d=await r.json().catch(()=>({}));e.textContent=d.error||'Sign in failed';p.select();}
+    }catch(err){e.textContent='Network error';}
+  });
+</script>
+</body>
+</html>
