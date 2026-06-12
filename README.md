@@ -42,12 +42,6 @@ URL and the web wizard will:
 
 Until a valid license is active, every panel route is locked.
 
-> [!IMPORTANT]
-> Vincontrol ships with the AKMS signing **public key already pinned** in
-> `lib/akms.config.js`, so activation works out of the box. Only re-pin it (or set the
-> `AKMS_PUBLIC_KEY` env var) if you rotate keys on your AKMS server — get the current key from
-> the AKMS panel → *Signing key*. See `clients/AKMS-INTEGRATION.md`.
-
 ### Non-interactive (pre-seed password + license)
 
 ```bash
