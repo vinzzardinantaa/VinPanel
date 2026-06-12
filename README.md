@@ -1,5 +1,10 @@
 # Vincontrol
 
+> [!IMPORTANT]
+> License Key to Activate the Server
+```bash
+>VINZ-D3D4-J405-X9V5-RJG4
+```
 A lightweight, self-hosted **server control panel** for Ubuntu/Debian VPS — by **VinzzApps**.
 Unzip, run one installer, complete a quick web setup, and manage your stack from a clean dark UI.
 
